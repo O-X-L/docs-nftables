@@ -1,0 +1,7 @@
+.idea/
+.vscode/
+.venv/
+
+build/
+source/*/**.md
+source/overview.json

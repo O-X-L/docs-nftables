@@ -1,0 +1,55 @@
+.wiki-img-lg {
+    width: 100%;
+    margin: 5px 0px;
+    border-radius: 5px;
+    border-style: solid;
+    border-color: #343a40;
+    border-width: 3px;
+}
+
+.wiki-img {
+    width: 90%;
+    margin: 5px 0px;
+    border-radius: 5px;
+    border-style: solid;
+    border-color: #343a40;
+    border-width: 3px;
+}
+
+.wiki-img-sm {
+    width: 60%;
+    margin: 5px 0px;
+    border-radius: 5px;
+    border-style: solid;
+    border-color: #343a40;
+    border-width: 3px;
+}
+
+.wiki-portrait {
+    width: 60%;
+    max-width: 500px;
+    margin: 5px 0px;
+    border-radius: 5px;
+    border-style: solid;
+    border-color: #343a40;
+    border-width: 1px;
+}
+
+.oxl-nav-logo > img, .oxl-head-logo {
+    border-radius: 5px;
+}
+
+.oxl-nav-logo > img {
+    width: 80px !important;
+    height: auto !important;
+}
+
+.oxl-head-logo {
+    width: 150px;
+    height: auto;
+}
+
+nav {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+}
