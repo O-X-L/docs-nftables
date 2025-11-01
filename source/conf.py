@@ -72,7 +72,7 @@ html_theme_options = {
     "version_dropdown": True,
     "version_info": [
         {
-            "version": "https://www.netfilter.org/projects/nftables/index.html",
+            "version": "https://www.netfilter.org/projects/nftables",
             "title": "NFTables Project",
             "aliases": [],
         },
@@ -97,6 +97,11 @@ html_theme_options = {
             "icon": "fontawesome/brands/github",
             "link": "https://github.com/O-X-L",
             "name": "OXL on GitHub",
+        },
+        {
+            "icon": "fontawesome/solid/globe",
+            "link": "https://www.O-X-L.com",
+            "name": "OXL Website",
         },
     ],
 }
