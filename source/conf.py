@@ -86,6 +86,11 @@ html_theme_options = {
             "title": "Repository user-space utility",
             "aliases": [],
         },
+        {
+            "version": "https://www.O-X-L.com",
+            "title": "About OXL",
+            "aliases": [],
+        },
     ],
     "social": [
         {
