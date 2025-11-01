@@ -13,7 +13,7 @@ This is a mirror of the [official NFTables documentation](https://wiki.nftables.
 Run:
 
 ```
-apt install git python3-pip
+apt install git python3-pip pandoc
 
 # with VENV
 apt install python3-virtualenv 
@@ -25,3 +25,7 @@ pip install -r requirements.txt
 # USAGE: bash html.sh <BUILD-DIR> <DOMAIN> 
 bash html.sh ./build/ nftables.docs.oxl.app
 ```
+
+## Setup
+
+* Make sure to redirect requests not ending in `.html` to the same path with that extension - else internal redirects will not work.

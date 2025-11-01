@@ -3,5 +3,6 @@
 .venv/
 
 build/
-source/*/**.md
+source/intro/*.rst
+source/usage/*.rst
 source/overview.json

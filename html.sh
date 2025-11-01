@@ -14,6 +14,11 @@ else
   DOMAIN="$2"
 fi
 
+if [ -z "$SKIP_DL" ]
+then
+  SKIP_DL='0'
+fi
+
 set -euo pipefail
 
 function log() {
@@ -28,8 +33,12 @@ cd "$(dirname "$0")"
 SRC_DIR="$(pwd)"
 
 TS="$(date +%s)"
-# TMP_DIR="/tmp/${TS}"
-TMP_DIR="/tmp/nft-test"
+if [[ "$SKIP_DL" == "0" ]]
+then
+  TMP_DIR="/tmp/${TS}"
+else
+  TMP_DIR="/tmp/nft-test"
+fi
 TMP_DIR2="${TMP_DIR}/build"
 mkdir -p "${TMP_DIR2}"
 
@@ -41,41 +50,62 @@ fi
 
 log 'DOWNLOADING UPSTREAM DOCS'
 cd "$TMP_DIR"
-rm -f "${SRC_DIR}/source/usage/"*.md "${SRC_DIR}/source/intro/"*.md
-download-mediawiki --url 'https://wiki.nftables.org/wiki-nftables' --convert-to-md --out-dir ./dump
-cp ./dump/*/*.md "${SRC_DIR}/source/usage/"
+rm -f "${SRC_DIR}/source/usage/"*.rst "${SRC_DIR}/source/intro/"*.rst
+if [[ "$SKIP_DL" == "0" ]] || [ ! -f './dump/overview.json' ]
+then
+  download-mediawiki --url 'https://wiki.nftables.org/wiki-nftables' --out-dir ./dump
+fi
+
+log 'CONVERTING'
+
+# special cases
+tail -n +2 ./dump/0/2.mw > ./dump/0/2.mw  # remove duplicate heading
+
+for file in ./dump/*/*.mw
+do
+  # changing table-format so the conversion works
+  # sed -i -r 's/!(\s|)colspan="4"(\s|)\|(.*)$/|\3\n|\n|\n|/g' "$file"
+  # sed -i -r 's/!(\s|)colspan="5"(\s|)\|(.*)$/|\3\n|\n|\n|\n|/g' "$file"
+  # sed -i -r 's/!(\s|)colspan="6"(\s|)\|(.*)$/|\3\n|\n|/g' "$file"  # not sure why 6.. there are only 3
+  # sed -i -r 's/!(\s|)colspan="7"(\s|)\|(.*)$/|\3\n|\n|\n|\n|\n|\n|/g' "$file"
+  # sed -i -r 's/!(\s|)colspan="8"(\s|)\|(.*)$/|\3\n|\n|\n|\n|\n|\n|\n|/g' "$file"
+
+  # make sure we only have 1 H1-tag
+  h1="$(grep -E '^={1,10} .* ={1,10}$' < "$file" | head -n1 || true)"
+  sed -i -r "s|^(={1,10}.*={1,10})$|=\1=|g" "$file"
+  sed -i "s|^=$h1=|$h1|g" "$file"
+
+  file_base="$(echo "$file" | sed 's|.mw||g')"
+  # pandoc --from mediawiki --to markdown "$file" -o "${file_base}.md"
+  pandoc --from mediawiki --columns=500 --to rst "$file" -o "${file_base}.rst"
+done
+
+cp ./dump/*/*.rst "${SRC_DIR}/source/usage/"
 cp ./dump/overview.json "${SRC_DIR}/source/"
 
-mv "${SRC_DIR}/source/usage/1.md" "${SRC_DIR}/source/intro/"
-mv "${SRC_DIR}/source/usage/2.md" "${SRC_DIR}/source/intro/"
-mv "${SRC_DIR}/source/usage/3.md" "${SRC_DIR}/source/intro/"
-mv "${SRC_DIR}/source/usage/4.md" "${SRC_DIR}/source/intro/"
-#rm -f "${SRC_DIR}/source/usage/README.md"
-#rm -f "${SRC_DIR}/source/usage/00scratch.md"
-#rm -f "${SRC_DIR}/source/usage/_Sidebar.md"
+mv "${SRC_DIR}/source/usage/1.rst" "${SRC_DIR}/source/intro/"
+mv "${SRC_DIR}/source/usage/2.rst" "${SRC_DIR}/source/intro/"
+mv "${SRC_DIR}/source/usage/3.rst" "${SRC_DIR}/source/intro/"
+mv "${SRC_DIR}/source/usage/4.rst" "${SRC_DIR}/source/intro/"
 
 log 'PATCHING DOCS & UPDATING SITEMAP'
+rm -f "${SRC_DIR}/source/usage/Flowtable.rst"  # empty redirect
+
 FILE_SM="${TMP_DIR}/sitemap.xml"
 cp "${SRC_DIR}/source/_meta/sitemap.xml" "$FILE_SM"
-for file in "${SRC_DIR}/source/"*/*.md
+for file in "${SRC_DIR}/source/"*/*.rst
 do
-  # echo " > $file"
+  if echo "$file" | grep -q '/legal/'
+  then
+    continue
+  fi
 
-  # full links
-  # sed -i -r "s|https:\/\/github\.com\/GAM-team\/GAM\/wiki\/([a-zA-Z0-9_\-]*?)|https://${DOMAIN}/usage/\1.html|g" "$file"
-
-  # relative links to other docs
-  # sed -i -r "s|\]\(([a-zA-Z0-9_\-]*?)\)|](https://${DOMAIN}/usage/\1.html)|g" "$file"
-
-  # change all but the first H1 to a H2
-  # h1="$(grep '^#' < "$file" | head -n 1 || true)"
-  # sed -i "s|^#\s|## |g" "$file"
-  # sed -i "s|^#$h1|$h1|g" "$file"
+  echo " > $file"
 
   # remove heading-tags
-  sed -i -r "s|\s\\{#.*?\\}||g" "$file"
+  # sed -i -r "s|\s\\{#.*?\\}||g" "$file"
 
-  file_id="$(echo "$file" | rev | cut -d '/' -f 1 | rev | sed 's|.md||g')"
+  file_id="$(echo "$file" | rev | cut -d '/' -f 1 | rev | sed 's|.rst||g')"
   file_title="$(jq ".[] | .[\"${file_id}\"]? // empty" < "${SRC_DIR}/source/overview.json")"
   file_title_safe="$(echo "$file_title" | sed 's|\s|_|g' | sed 's|"||g' | sed 's|/|_|g')"
   # url-encode
@@ -83,22 +113,30 @@ do
 
   if echo "$file_title" | grep -q ':'
   then
-    echo "Removing meta-file: ${file_id} (${file_title})"
+    echo " > Removing meta-file: ${file_id} (${file_title})"
     rm "$file"
     continue
   fi
 
   src_subdir="$(echo "$file" | rev | cut -d '/' -f 2 | rev)"
 
-  file_new="${SRC_DIR}/source/${src_subdir}/${file_title_safe}.md"
+  file_new="${SRC_DIR}/source/${src_subdir}/${file_title_safe}.rst"
   mv "$file" "$file_new"
   echo "  <url><loc>https://${DOMAIN}/${src_subdir}/${file_title_safe}.html</loc></url>" >> "$FILE_SM"
 
-  echo '' >> "$file"
-  echo '----' >> "$file"
-  echo '' >> "$file"
+  # change all but the first H1 to a H2
+  # h1="$(grep '^#' < "$file_new" | head -n 1 || true)"
+  # sed -i "s|^#\s|## |g" "$file_new"
+  # sed -i "s|^#$h1|$h1|g" "$file_new"
+
+  # remove random
+  # sed -i 's|{=html}\*||g' "$file_new"
+
+  echo '' >> "$file_new"
+  echo '----' >> "$file_new"
+  echo '' >> "$file_new"
   # NOTE: edge-case where the original had a '/' in its title will not work correctly
-  echo "[Original Documentation](https://wiki.nftables.org/wiki-nftables/index.php/${file_title_safe})" >> "$file_new"
+  echo "\`Original Documentation <https://wiki.nftables.org/wiki-nftables/index.php/${file_title_safe}>\`_" >> "$file_new"
 done
 echo '</urlset>' >> "$FILE_SM"
 
@@ -140,6 +178,9 @@ mv "${TMP_DIR2}/"* "${DEST_DIR}/"
 
 touch "${DEST_DIR}/${TS}"
 
-rm -rf "$TMP_DIR"
+if [[ "$SKIP_DL" == "0" ]]
+then
+  rm -rf "$TMP_DIR"
+fi
 
 log 'FINISHED'
