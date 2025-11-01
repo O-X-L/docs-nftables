@@ -63,13 +63,6 @@ tail -n +2 ./dump/0/2.mw > ./dump/0/2.mw  # remove duplicate heading
 
 for file in ./dump/*/*.mw
 do
-  # changing table-format so the conversion works
-  # sed -i -r 's/!(\s|)colspan="4"(\s|)\|(.*)$/|\3\n|\n|\n|/g' "$file"
-  # sed -i -r 's/!(\s|)colspan="5"(\s|)\|(.*)$/|\3\n|\n|\n|\n|/g' "$file"
-  # sed -i -r 's/!(\s|)colspan="6"(\s|)\|(.*)$/|\3\n|\n|/g' "$file"  # not sure why 6.. there are only 3
-  # sed -i -r 's/!(\s|)colspan="7"(\s|)\|(.*)$/|\3\n|\n|\n|\n|\n|\n|/g' "$file"
-  # sed -i -r 's/!(\s|)colspan="8"(\s|)\|(.*)$/|\3\n|\n|\n|\n|\n|\n|\n|/g' "$file"
-
   # make sure we only have 1 H1-tag
   h1="$(grep -E '^={1,10} .* ={1,10}$' < "$file" | head -n1 || true)"
   sed -i -r "s|^(={1,10}.*={1,10})$|=\1=|g" "$file"
@@ -89,8 +82,6 @@ mv "${SRC_DIR}/source/usage/3.rst" "${SRC_DIR}/source/intro/"
 mv "${SRC_DIR}/source/usage/4.rst" "${SRC_DIR}/source/intro/"
 
 log 'PATCHING DOCS & UPDATING SITEMAP'
-rm -f "${SRC_DIR}/source/usage/Flowtable.rst"  # empty redirect
-
 FILE_SM="${TMP_DIR}/sitemap.xml"
 cp "${SRC_DIR}/source/_meta/sitemap.xml" "$FILE_SM"
 for file in "${SRC_DIR}/source/"*/*.rst
@@ -100,10 +91,16 @@ do
     continue
   fi
 
-  echo " > $file"
+  # echo " > $file"
 
-  # remove heading-tags
-  # sed -i -r "s|\s\\{#.*?\\}||g" "$file"
+  # empty redirects
+  lines="$(wc -l "$file" | cut -d ' ' -f1)"
+  if (( lines < 30 )) && grep -qE '#\. REDIRECT|See: ' < "$file"
+  then
+    echo " > Removing empty file: ${file_id} (${file_title})"
+    rm "$file"
+    continue
+  fi
 
   file_id="$(echo "$file" | rev | cut -d '/' -f 1 | rev | sed 's|.rst||g')"
   file_title="$(jq ".[] | .[\"${file_id}\"]? // empty" < "${SRC_DIR}/source/overview.json")"
@@ -123,14 +120,6 @@ do
   file_new="${SRC_DIR}/source/${src_subdir}/${file_title_safe}.rst"
   mv "$file" "$file_new"
   echo "  <url><loc>https://${DOMAIN}/${src_subdir}/${file_title_safe}.html</loc></url>" >> "$FILE_SM"
-
-  # change all but the first H1 to a H2
-  # h1="$(grep '^#' < "$file_new" | head -n 1 || true)"
-  # sed -i "s|^#\s|## |g" "$file_new"
-  # sed -i "s|^#$h1|$h1|g" "$file_new"
-
-  # remove random
-  # sed -i 's|{=html}\*||g' "$file_new"
 
   echo '' >> "$file_new"
   echo '----' >> "$file_new"
