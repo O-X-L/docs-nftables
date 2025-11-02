@@ -1,10 +1,8 @@
 # NFTables Documentation - Sphinx Material-Themed
 
-<!-- 
-[![Uptime](https://status.oxl.at/api/v1/endpoints/1--oxl_documentation/uptimes/7d/badge.svg)](https://status.oxl.at/endpoints/1--oxl_documentation)
--->
-
 EN 🇬🇧: [nftables.docs.oxl.app](https://gam.docs.oxl.app)
+
+[![Docs Uptime](https://status.oxl.at/api/v1/endpoints/4--docs-mirrors_docs-mirror-nftables/uptimes/7d/badge.svg)](https://status.oxl.at/endpoints/4--docs-mirrors_docs-mirror-nftables)
 
 This is a mirror of the [official NFTables documentation](https://wiki.nftables.org/) to make it a bit easier accessible for new users.
 
