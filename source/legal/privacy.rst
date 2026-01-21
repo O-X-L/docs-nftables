@@ -14,7 +14,9 @@ See: `www.O-X-L.com/privacy <https:/www.o-x-l.com/privacy>`_
 Cookies 🍪
 **********
 
-This site does not use cookies.
+* **sec_\***
+
+  The cookie with the prefix "sec_" is used to detect abuse by bots
 
 ----
 
