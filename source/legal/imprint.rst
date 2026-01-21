@@ -7,7 +7,7 @@ Imprint
 Info
 ****
 
-See: `www.O-X-L.com/impressum <https:/www.o-x-l.com/impressum>`_
+See: `www.OXL.app/impressum <https:/www.oxl.app/impressum>`_
 
 **Content orientation**: Providing information about the `netfilter/NFTables <https://www.netfilter.org/projects/nftables/index.html>`_ FOSS project.
 
